@@ -32,14 +32,16 @@ app/
 ui/
   streamlit_app.py   # web UI
 duallens/
-  DualLens_Analytics.ipynb  # dual-lens screener (fixed pipeline)
+  pipeline/                 # dual-lens screener as a fixed pipeline (LangChain)
   agent.py                  # dual-lens screener as a tool-using agent
+  eval.py                   # LLM-as-judge eval harness for the agent
+  streamlit_agent.py        # browser UI for the agent
 Companies-AI-Initiatives/   # the 5 source PDFs
 ```
 
 ## DualLens Agent — agentic RAG (`duallens/agent.py`)
 
-Where `DualLens_Analytics.ipynb` runs a fixed pipeline, `agent.py` turns the two
+Where [`duallens/pipeline/`](duallens/pipeline/) runs a fixed pipeline, `agent.py` turns the two
 lenses into **tools** and lets **Claude Opus 4.8** run a manual tool-use loop,
 deciding what to call and when. Framework-free on purpose: the agent loop is a
 plain `while` over the Messages API, so every tool call is explicit and printed.

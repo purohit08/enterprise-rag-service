@@ -366,20 +366,27 @@ def _anthropic_client() -> "anthropic.Anthropic":
     return anthropic.Anthropic(**kwargs)
 
 
-def run_agent(question: str, verbose: bool = True) -> str:
+def run_agent(question: str, verbose: bool = True, on_event=None) -> str:
+    """Run the agent. `on_event(dict)` is an optional callback that receives
+    {"type": "text"|"tool"|"final", ...} events — used by the web UI to show the
+    live trace. CLI uses `verbose` to print the same events to stdout."""
     client = _anthropic_client()
     messages: List[Dict] = [{"role": "user", "content": question}]
 
     with _span("duallens-agent", input={"question": question}):
         try:
-            return _agent_loop(client, messages, verbose)
+            return _agent_loop(client, messages, verbose, on_event)
         finally:
             lf = _langfuse()
             if lf is not None:
                 lf.flush()  # push buffered traces before the process exits
 
 
-def _agent_loop(client, messages: List[Dict], verbose: bool) -> str:
+def _agent_loop(client, messages: List[Dict], verbose: bool, on_event=None) -> str:
+    def emit(event: Dict) -> None:
+        if on_event:
+            on_event(event)
+
     for turn in range(MAX_TURNS):
         resp = client.messages.create(
             model=LLM_MODEL,
@@ -392,14 +399,16 @@ def _agent_loop(client, messages: List[Dict], verbose: bool) -> str:
         _trace_generation(f"claude-turn-{turn + 1}", LLM_MODEL, messages, resp)
 
         # Surface any text the model emitted this turn.
-        if verbose:
-            for block in resp.content:
-                if block.type == "text" and block.text.strip():
+        for block in resp.content:
+            if block.type == "text" and block.text.strip():
+                if verbose:
                     print(block.text)
+                emit({"type": "text", "text": block.text})
 
         if resp.stop_reason != "tool_use":
-            final = "".join(b.text for b in resp.content if b.type == "text")
-            return final.strip()
+            final = "".join(b.text for b in resp.content if b.type == "text").strip()
+            emit({"type": "final", "text": final})
+            return final
 
         # Echo the assistant turn back, then run each requested tool.
         messages.append({"role": "assistant", "content": resp.content})
@@ -409,15 +418,18 @@ def _agent_loop(client, messages: List[Dict], verbose: bool) -> str:
                 continue
             if verbose:
                 print(f"  → {block.name}({json.dumps(block.input)})")
+            emit({"type": "tool", "name": block.name, "input": block.input})
             with _span(f"tool:{block.name}", input=block.input):
                 try:
                     output = _DISPATCH[block.name](**block.input)
+                    emit({"type": "tool_result", "name": block.name, "output": output})
                     result_block = {
                         "type": "tool_result",
                         "tool_use_id": block.id,
                         "content": json.dumps(output, default=str),
                     }
                 except Exception as exc:  # return errors to the model, don't crash the loop
+                    emit({"type": "tool_result", "name": block.name, "error": str(exc)})
                     result_block = {
                         "type": "tool_result",
                         "tool_use_id": block.id,

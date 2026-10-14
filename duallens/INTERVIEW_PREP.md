@@ -77,7 +77,7 @@ overlap so facts that straddle a boundary still appear whole in one chunk."*
 
 **Follow-ups:**
 - *Token vs. character chunking?* Characters are simplest; token-based or
-  sentence/recursive splitting respects structure better (the notebook uses
+  sentence/recursive splitting respects structure better (the pipeline uses
   LangChain's `RecursiveCharacterTextSplitter`).
 - *How pick the size?* Empirically, via the eval — measure retrieval quality.
 
@@ -293,7 +293,8 @@ they're reusable across clients, with standardised discovery and auth."*
 model to score another model's output against criteria — cheaper and faster than
 human grading, good for regression testing.
 
-**How this repo does it.** The DualLens notebook scores each RAG answer 1–5 on:
+**How this repo does it.** The pipeline (`pipeline/judge.py`) and the agent eval
+(`eval.py`) score each RAG answer 1–5 on:
 - **Groundedness** — is every claim supported by the retrieved context?
 - **Relevance** — does it actually answer the question?
 

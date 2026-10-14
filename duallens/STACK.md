@@ -103,9 +103,9 @@ Every external API, model, datastore, and library the agent
 | `pypdf` | PDF text extraction |
 | `python-dotenv` | Load `.env` keys |
 | `langfuse` | Optional tracing/observability |
-| `pandas` | (notebook) tabular financials |
-| `matplotlib` | (notebook) charts |
-| `langchain*` | (notebook) the fixed-pipeline version |
+| `pandas` | (pipeline) tabular financials |
+| `matplotlib` | (pipeline) charts |
+| `langchain*` | the fixed-pipeline version (`duallens/pipeline/`) |
 
 ---
 

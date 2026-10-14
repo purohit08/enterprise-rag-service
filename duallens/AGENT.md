@@ -19,10 +19,10 @@ produces a grounded, cited Buy/Hold/Sell ranking with a single best pick.
 
 The repo ships the same idea in two forms:
 
-| | `DualLens_Analytics.ipynb` | `agent.py` (this doc) |
+| | `duallens/pipeline/` (fixed pipeline) | `agent.py` (this doc) |
 |---|---|---|
 | Control flow | **Fixed pipeline** — cells run top to bottom in a set order | **Agentic** — the model decides what to call and when |
-| Who drives | The notebook author | Claude Opus 4.8, via a tool-use loop |
+| Who drives | Fixed order (set by the code) | Claude Opus 4.8, via a tool-use loop |
 | Lenses | Hard-wired function calls | Exposed as **tools** the model may call, skip, or repeat |
 | Transparency | Linear cells | Every tool call is printed as it happens |
 
@@ -252,9 +252,10 @@ final answer, suppress the live tool trace).
 
 - **Live financials.** `yfinance` is unofficial and rate-limited; some fields can
   be missing. For production, swap in a licensed data provider behind the same tool.
-- **No grounding score yet.** The notebook's LLM-as-Judge (groundedness +
-  relevance, 1–5) isn't wired into the agent. A `--eval` flag could score each
-  retrieval-backed answer and gate low-confidence claims.
+- **Evaluation.** [`eval.py`](eval.py) scores agent runs with an LLM-as-judge
+  (groundedness + relevance, 1–5) against the evidence each run gathered. Next
+  steps: a labelled gold set to grade against ground truth (not just internal
+  consistency), and pushing scores into Langfuse per trace.
 - **Retrieval precision.** Dense-only search; hybrid (dense + keyword) retrieval
   and a re-ranker would raise precision on narrow queries.
 - **Fixed universe.** Five companies, five PDFs. Broadening the universe means

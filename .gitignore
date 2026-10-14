@@ -18,3 +18,5 @@ Companies-AI-Initiatives.zip
 duallens/chroma_duallens/
 duallens/chroma_agent/
 **/.ipynb_checkpoints/
+duallens/eval_results.json
+duallens/pipeline/chroma_pipeline/
