@@ -25,5 +25,9 @@ python-dotenv>=1.0.0
 # Observability (optional — tracing is a no-op if unconfigured)
 langfuse>=3.0.0
 
+# Evaluation — RAGAS RAG-metric suite (faithfulness, answer relevancy, context precision/recall)
+ragas>=0.4.0
+datasets>=4.0.0
+
 # Notebook
 ipykernel>=6.29.0

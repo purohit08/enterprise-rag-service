@@ -20,3 +20,4 @@ duallens/chroma_agent/
 **/.ipynb_checkpoints/
 duallens/eval_results.json
 duallens/pipeline/chroma_pipeline/
+duallens/ragas_results.csv

@@ -65,8 +65,13 @@ Optional [Langfuse](https://langfuse.com) tracing: set `LANGFUSE_PUBLIC_KEY` /
 `LANGFUSE_SECRET_KEY` and every run is traced (Claude calls + tool calls + token
 usage); unset, it's a no-op.
 
+Evaluated with a custom LLM-as-judge ([`duallens/eval.py`](duallens/eval.py)) and
+the **RAGAS** metric suite ([`duallens/ragas_eval.py`](duallens/ragas_eval.py)) —
+faithfulness, answer relevancy, context precision/recall, conciseness, correctness.
+
 **Docs:** [`duallens/AGENT.md`](duallens/AGENT.md) (design & reference) ·
 [`duallens/STACK.md`](duallens/STACK.md) (APIs, models, embedding model, vector DB) ·
+[`duallens/EVALUATION.md`](duallens/EVALUATION.md) (metrics & how to run them) ·
 [`duallens/INTERVIEW_PREP.md`](duallens/INTERVIEW_PREP.md) (concept study guide).
 
 ## Setup (one time)

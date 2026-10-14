@@ -293,18 +293,28 @@ they're reusable across clients, with standardised discovery and auth."*
 model to score another model's output against criteria — cheaper and faster than
 human grading, good for regression testing.
 
-**How this repo does it.** The pipeline (`pipeline/judge.py`) and the agent eval
-(`eval.py`) score each RAG answer 1–5 on:
-- **Groundedness** — is every claim supported by the retrieved context?
-- **Relevance** — does it actually answer the question?
+**How this repo does it.** Two harnesses (full detail in [EVALUATION.md](EVALUATION.md)):
+1. **Custom LLM-judge** (`eval.py`, `pipeline/judge.py`) — scores answers 1–5 on
+   **groundedness** and **relevance**, returning strict JSON.
+2. **RAGAS suite** (`ragas_eval.py`) — the recognised RAG-metrics library:
+   - **faithfulness** — hallucination (claims unsupported by context) *[no label]*
+   - **answer_relevancy** — does it address the question? *[no label]*
+   - **context_precision** — were retrieved passages relevant? *[no label]*
+   - **context_recall** — did retrieval cover the reference? *[needs gold]*
+   - **conciseness** — a rubric (`AspectCritic`, 0/1): full but not padded
+   - **correctness_rubric** — a graded 1–5 rubric (`RubricsScore`) vs the reference
 
-The judge returns strict JSON (`{"groundedness", "relevance", "rationale"}`).
+**Rubrics** are how you score *qualities* (conciseness, correctness) that aren't a
+simple support check — you hand the judge an explicit scoring rubric. `AspectCritic`
+gives a binary verdict against a definition; `RubricsScore` gives a graded 1–5 score
+against per-score descriptions.
 
-**What to say.** *"I evaluate retrieval-augmented answers on groundedness and
-relevance with an LLM judge that returns structured JSON, so I can track quality
-as a number and catch regressions when I change chunking, k, or the prompt. The
-roadmap is a labelled gold Q&A set to report average scores, plus faithfulness/
-context-precision/recall metrics."*
+**What to say.** *"I evaluate on two levels: a hand-rolled LLM-judge for groundedness
+and relevance, and the RAGAS suite for the standard RAG metrics — faithfulness,
+answer relevancy, context precision and recall — plus rubric-based conciseness and a
+1–5 correctness rubric against a gold set. The no-label metrics catch hallucination
+and retrieval noise; the gold-set metrics catch misses and measure accuracy. I use
+Claude as the judge with a clear rubric to limit bias."*
 
 **Follow-ups:**
 - *Isn't the judge biased?* Yes — mitigate with a stronger/separate judge model,

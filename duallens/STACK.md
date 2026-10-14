@@ -103,6 +103,7 @@ Every external API, model, datastore, and library the agent
 | `pypdf` | PDF text extraction |
 | `python-dotenv` | Load `.env` keys |
 | `langfuse` | Optional tracing/observability |
+| `ragas` | RAG-metric evaluation suite (see [EVALUATION.md](EVALUATION.md)) |
 | `pandas` | (pipeline) tabular financials |
 | `matplotlib` | (pipeline) charts |
 | `langchain*` | the fixed-pipeline version (`duallens/pipeline/`) |
