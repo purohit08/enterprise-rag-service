@@ -190,9 +190,20 @@ are read from the environment.
 | `OPENAI_BASE_URL` | optional | Point embeddings at a proxy/gateway instead of `api.openai.com` |
 | `ANTHROPIC_BASE_URL` | optional | Point Claude at a gateway instead of `api.anthropic.com` |
 | `ANTHROPIC_WORKSPACE_ID` | optional | Sent as the `anthropic-workspace-id` header when the key isn't workspace-scoped |
+| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `LANGFUSE_HOST` | optional | Enable Langfuse tracing (see §7b) |
 
 Tunable constants live at the top of `agent.py`: `LLM_MODEL`, `EMBED_MODEL`,
 `CHUNK_SIZE`, `CHUNK_OVERLAP`, `TOP_K`, `MAX_TOKENS`, `MAX_TURNS`, `COMPANIES`.
+
+### 7b. Observability (optional Langfuse tracing)
+
+If `LANGFUSE_PUBLIC_KEY` + `LANGFUSE_SECRET_KEY` are set and `langfuse` is
+installed, each run is traced: a root span `duallens-agent`, a **generation** per
+Claude turn (`claude-turn-N`, with token usage), and a **span** per tool call
+(`tool:<name>`). Traces flush at the end of the run. If the keys are unset it's a
+**complete no-op** — `_langfuse()` returns `None`, `_span()` yields nothing, and
+the agent runs identically. The observability layer is fully decoupled from the
+core loop. See the full stack in [STACK.md](STACK.md).
 
 ---
 

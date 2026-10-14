@@ -315,6 +315,47 @@ context-precision/recall metrics."*
 
 ---
 
+## 8b. Observability & tracing (Langfuse)
+
+**What it is.** LLM apps are non-deterministic and multi-step, so you need to
+*see* what happened: every model call, every tool call, the prompts, the outputs,
+latency, token usage, and cost — per request, over time. **Observability** is
+that visibility; **tracing** is the structured record of a single run as a tree
+of spans. **Langfuse** is an open-source LLM-observability platform for exactly this.
+
+**Core concepts.**
+- **Trace** — one end-to-end run (one agent invocation).
+- **Span** — a step within it (e.g. a tool call), nested to show structure.
+- **Generation** — a special span for an LLM call, capturing model, input, output,
+  and **token usage** (→ cost).
+
+**How this repo does it.** `agent.py` has **optional** Langfuse tracing: if
+`LANGFUSE_PUBLIC_KEY` + `LANGFUSE_SECRET_KEY` are set, each run records a root span
+(`duallens-agent`), a **generation** per Claude turn (`claude-turn-N`, with token
+usage), and a **span** per tool call (`tool:search_ai_strategy`, …). If the keys
+aren't set it's a **complete no-op** — the agent runs unchanged. Traces are
+flushed at the end of the run.
+
+**What to say.** *"I instrumented the agent with Langfuse so every run is a trace:
+a generation per Claude call with token usage, and a span per tool call. That
+gives me latency, cost, and the full prompt/response for debugging and for
+spotting regressions. I made it optional and zero-overhead when it's off, so it
+never couples the core logic to the observability layer."*
+
+**Follow-ups:**
+- *Why not just log?* Plain logs lose the *structure* (which tool, inside which
+  turn, inside which run) and the aggregates (cost/latency trends). Tracing gives
+  a tree and a dashboard.
+- *Observability vs. evals?* Complementary: **evals** measure *quality* on a test
+  set (groundedness, relevance); **observability** shows *what actually happened*
+  in production (latency, cost, errors, the real prompts). Langfuse also stores
+  traces you can later turn into eval datasets.
+- *OpenTelemetry?* Langfuse v3+ is built on OTEL spans, so it interops with standard
+  tracing tooling.
+- *Alternatives?* LangSmith, Phoenix/Arize, Helicone, OpenLLMetry — same idea.
+
+---
+
 ## 9. The "dual-lens" idea (the project's story)
 
 **What it is.** Fusing **quantitative** signal (numbers: P/E, beta, 3-yr return)
@@ -362,6 +403,11 @@ lens into one grounded, cited ranking."*
 - **How would you productionise?** Managed vector DB, hybrid retrieval + re-ranker,
   tracing (Langfuse), eval suite (promptfoo/RAGAS) in CI, caching, auth, a worker
   queue for model calls.
+- **What is observability / tracing?** Structured visibility into each run — a
+  **trace** of **spans** (tool calls) and **generations** (LLM calls with token
+  usage), for latency/cost/debugging. This repo uses **Langfuse** (optional).
+- **Observability vs evals?** Evals measure *quality* on a test set; observability
+  shows *what actually happened* at runtime (cost, latency, real prompts).
 
 ---
 
@@ -382,6 +428,9 @@ lens into one grounded, cited ranking."*
 | **tool_use / tool_result** | The request block the model emits / the result block you return |
 | **Agent loop** | Repeated model→tool→result cycle until done |
 | **LLM-as-judge** | Using an LLM to score another model's output |
+| **Observability** | Runtime visibility into an LLM app (cost, latency, prompts) |
+| **Trace / span / generation** | A run / a step / an LLM-call step within it (Langfuse) |
+| **Langfuse** | Open-source LLM observability & tracing platform |
 | **Groundedness** | Are the answer's claims supported by the context? |
 | **Adaptive thinking** | Opus 4.8 mode where the model decides how much to reason |
 | **ASGI / Uvicorn** | Async server standard / server running FastAPI |

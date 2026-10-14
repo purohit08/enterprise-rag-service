@@ -22,5 +22,8 @@ matplotlib>=3.8.0
 pypdf>=4.0.0
 python-dotenv>=1.0.0
 
+# Observability (optional — tracing is a no-op if unconfigured)
+langfuse>=3.0.0
+
 # Notebook
 ipykernel>=6.29.0

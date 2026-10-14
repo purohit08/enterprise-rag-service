@@ -59,6 +59,14 @@ python -m duallens.agent                   # rank all 5 companies
 python -m duallens.agent "Is NVIDIA a buy given its AI strategy?"
 ```
 
+Optional [Langfuse](https://langfuse.com) tracing: set `LANGFUSE_PUBLIC_KEY` /
+`LANGFUSE_SECRET_KEY` and every run is traced (Claude calls + tool calls + token
+usage); unset, it's a no-op.
+
+**Docs:** [`duallens/AGENT.md`](duallens/AGENT.md) (design & reference) ·
+[`duallens/STACK.md`](duallens/STACK.md) (APIs, models, embedding model, vector DB) ·
+[`duallens/INTERVIEW_PREP.md`](duallens/INTERVIEW_PREP.md) (concept study guide).
+
 ## Setup (one time)
 
 ```bash

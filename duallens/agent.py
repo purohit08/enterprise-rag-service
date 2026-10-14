@@ -77,6 +77,75 @@ def _load_keys() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Observability — optional Langfuse tracing
+# ---------------------------------------------------------------------------
+# If LANGFUSE_PUBLIC_KEY + LANGFUSE_SECRET_KEY are set and the `langfuse` package
+# is installed, every agent run is traced: a root span for the run, a generation
+# span per Claude call (model, inputs, output, token usage), and a span per tool
+# call. Without those env vars it is a complete no-op — the agent runs unchanged.
+from contextlib import contextmanager
+
+_LANGFUSE = None  # None = unchecked, False = unavailable, else the client
+
+
+def _langfuse():
+    global _LANGFUSE
+    if _LANGFUSE is not None:
+        return _LANGFUSE or None
+    import os
+
+    if not (os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY")):
+        _LANGFUSE = False
+        return None
+    try:
+        from langfuse import get_client
+
+        _LANGFUSE = get_client()
+    except Exception:  # package missing or misconfigured -> tracing off
+        _LANGFUSE = False
+    return _LANGFUSE or None
+
+
+@contextmanager
+def _span(name: str, **attrs):
+    """Trace a span if Langfuse is configured; otherwise do nothing."""
+    lf = _langfuse()
+    if lf is None:
+        yield None
+        return
+    try:
+        with lf.start_as_current_span(name=name, input=attrs.get("input")) as span:
+            yield span
+    except Exception:
+        yield None
+
+
+def _trace_generation(name: str, model: str, messages, response) -> None:
+    """Record one Claude call as a generation (with token usage) if tracing is on."""
+    lf = _langfuse()
+    if lf is None:
+        return
+    try:
+        text = "".join(b.text for b in response.content if b.type == "text")
+        tool_calls = [b.name for b in response.content if b.type == "tool_use"]
+        usage = getattr(response, "usage", None)
+        with lf.start_as_current_generation(
+            name=name,
+            model=model,
+            input={"messages": len(messages)},
+            usage_details={
+                "input": getattr(usage, "input_tokens", None),
+                "output": getattr(usage, "output_tokens", None),
+            }
+            if usage
+            else None,
+        ) as gen:
+            gen.update(output={"text": text, "tool_calls": tool_calls, "stop_reason": response.stop_reason})
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
 # Embeddings + vector store (OpenAI embeddings, local Chroma)
 # ---------------------------------------------------------------------------
 def _openai_client() -> "openai.OpenAI":
@@ -301,6 +370,16 @@ def run_agent(question: str, verbose: bool = True) -> str:
     client = _anthropic_client()
     messages: List[Dict] = [{"role": "user", "content": question}]
 
+    with _span("duallens-agent", input={"question": question}):
+        try:
+            return _agent_loop(client, messages, verbose)
+        finally:
+            lf = _langfuse()
+            if lf is not None:
+                lf.flush()  # push buffered traces before the process exits
+
+
+def _agent_loop(client, messages: List[Dict], verbose: bool) -> str:
     for turn in range(MAX_TURNS):
         resp = client.messages.create(
             model=LLM_MODEL,
@@ -310,6 +389,7 @@ def run_agent(question: str, verbose: bool = True) -> str:
             tools=TOOLS,
             messages=messages,
         )
+        _trace_generation(f"claude-turn-{turn + 1}", LLM_MODEL, messages, resp)
 
         # Surface any text the model emitted this turn.
         if verbose:
@@ -329,20 +409,21 @@ def run_agent(question: str, verbose: bool = True) -> str:
                 continue
             if verbose:
                 print(f"  → {block.name}({json.dumps(block.input)})")
-            try:
-                output = _DISPATCH[block.name](**block.input)
-                result_block = {
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": json.dumps(output, default=str),
-                }
-            except Exception as exc:  # return errors to the model, don't crash the loop
-                result_block = {
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": f"Tool error: {exc}",
-                    "is_error": True,
-                }
+            with _span(f"tool:{block.name}", input=block.input):
+                try:
+                    output = _DISPATCH[block.name](**block.input)
+                    result_block = {
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": json.dumps(output, default=str),
+                    }
+                except Exception as exc:  # return errors to the model, don't crash the loop
+                    result_block = {
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": f"Tool error: {exc}",
+                        "is_error": True,
+                    }
             tool_results.append(result_block)
         messages.append({"role": "user", "content": tool_results})
 
