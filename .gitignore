@@ -21,3 +21,6 @@ duallens/chroma_agent/
 duallens/eval_results.json
 duallens/pipeline/chroma_pipeline/
 duallens/ragas_results.csv
+.deepeval/
+.deepeval-cache.json
+temp_test_run_data.json

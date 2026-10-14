@@ -104,6 +104,7 @@ Every external API, model, datastore, and library the agent
 | `python-dotenv` | Load `.env` keys |
 | `langfuse` | Optional tracing/observability |
 | `ragas` | RAG-metric evaluation suite (see [EVALUATION.md](EVALUATION.md)) |
+| `deepeval` | Eval framework — RAG metrics + GEval rubrics |
 | `pandas` | (pipeline) tabular financials |
 | `matplotlib` | (pipeline) charts |
 | `langchain*` | the fixed-pipeline version (`duallens/pipeline/`) |

@@ -7,9 +7,15 @@ are two complementary harnesses:
 |---|---|---|---|
 | **Custom LLM-as-judge** | [`eval.py`](eval.py) | groundedness, relevance (1-5) | none (raw Anthropic SDK) |
 | **RAGAS suite** | [`ragas_eval.py`](ragas_eval.py) | faithfulness, answer relevancy, context precision/recall, conciseness, correctness rubric | `ragas` |
+| **DeepEval framework** | [`deepeval_eval.py`](deepeval_eval.py) | faithfulness, answer relevancy, contextual precision/recall, + GEval conciseness & correctness rubrics | `deepeval` |
 
-Both use **Claude Opus 4.8** as the evaluator (judge) and the project's OpenAI
-embeddings — the same gateway/workspace config as everything else.
+All use **Claude Opus 4.8** as the evaluator (judge); RAGAS also uses the
+project's OpenAI embeddings. Same gateway/workspace config as everything else.
+
+These map onto the common "AI agent eval" landscape: **RAG + response evals**
+(RAGAS), an **eval framework** (DeepEval), and **tracing + observability**
+(Langfuse, see [AGENT.md](AGENT.md) §7b). Three well-chosen tools for a RAG agent,
+not one of every kind.
 
 ---
 
@@ -43,6 +49,25 @@ embeddings — the same gateway/workspace config as everything else.
   - `AspectCritic` → binary 0/1 against a definition (conciseness here).
   - `RubricsScore` → graded 1-5 against per-score descriptions (correctness here).
 
+### DeepEval framework (`deepeval_eval.py`)
+
+A pytest-style eval framework. Same RAG metrics (its own LLM-judge
+implementations) plus **GEval** — DeepEval's custom-criteria metric where you
+state a rubric in plain English and it scores with chain-of-thought.
+
+| Metric | Range | Needs gold? | Notes |
+|---|---|---|---|
+| **faithfulness** | 0-1 | No | claims vs retrieval_context |
+| **answer_relevancy** | 0-1 | No | addresses the question |
+| **contextual_precision** | 0-1 | **Yes** | relevant passages ranked first |
+| **contextual_recall** | 0-1 | **Yes** | retrieval covers the expected answer |
+| **conciseness** (GEval) | 0-1 | No | rubric: full but not padded |
+| **correctness** (GEval) | 0-1 | **Yes** | rubric: matches the expected answer |
+
+Claude is wired in as a **custom `DeepEvalBaseLLM`** (`_build_claude_model`), so
+DeepEval judges with Opus 4.8 instead of its default OpenAI judge — the wrapper
+returns schema-validated JSON for the metrics that need structured output.
+
 ### Custom judge (`eval.py`)
 
 | Metric | Range | What it catches |
@@ -72,6 +97,10 @@ python -m duallens.eval -q "Is IBM a buy?"
 # RAGAS suite (uses the gold set in ragas_eval.py)
 python -m duallens.ragas_eval           # all gold questions
 python -m duallens.ragas_eval -n 2      # first N (cheaper; each run makes many judge calls)
+
+# DeepEval framework (same gold set)
+python -m duallens.deepeval_eval        # all gold questions
+python -m duallens.deepeval_eval -n 2   # first N
 ```
 
 RAGAS writes per-question detail to `duallens/ragas_results.csv`; the custom

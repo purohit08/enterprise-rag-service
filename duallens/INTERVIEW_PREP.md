@@ -320,7 +320,13 @@ Claude as the judge with a clear rubric to limit bias."*
 - *Isn't the judge biased?* Yes — mitigate with a stronger/separate judge model,
   a clear rubric, few-shot anchors, and spot-checking against human labels.
 - *Other RAG metrics?* Context precision/recall (retrieval quality), faithfulness
-  (answer vs. context), answer relevance. Tools: RAGAS, promptfoo, DeepEval.
+  (answer vs. context), answer relevance. **This repo uses both RAGAS and DeepEval**
+  on the same gold set — RAGAS for the RAG-metric suite, DeepEval as a pytest-style
+  eval framework with GEval rubric metrics.
+- *The eval-tool landscape?* RAG/response evals (RAGAS, TruLens), eval frameworks
+  (DeepEval, Inspect AI, Evidently), tracing/observability (Langfuse, Phoenix),
+  testing/red-teaming (promptfoo, Giskard, garak), agent benchmarks (SWE-bench,
+  τ-bench). For a RAG agent I picked RAGAS + DeepEval + Langfuse — the boxes that fit.
 - *Offline vs. online eval?* Offline on a fixed test set before shipping; online
   via user feedback / A-B once live.
 

@@ -66,7 +66,8 @@ Optional [Langfuse](https://langfuse.com) tracing: set `LANGFUSE_PUBLIC_KEY` /
 usage); unset, it's a no-op.
 
 Evaluated with a custom LLM-as-judge ([`duallens/eval.py`](duallens/eval.py)) and
-the **RAGAS** metric suite ([`duallens/ragas_eval.py`](duallens/ragas_eval.py)) —
+the **RAGAS** suite ([`duallens/ragas_eval.py`](duallens/ragas_eval.py)) and the
+**DeepEval** framework ([`duallens/deepeval_eval.py`](duallens/deepeval_eval.py)) —
 faithfulness, answer relevancy, context precision/recall, conciseness, correctness.
 
 **Docs:** [`duallens/AGENT.md`](duallens/AGENT.md) (design & reference) ·
