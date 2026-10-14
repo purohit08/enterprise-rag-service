@@ -11,4 +11,16 @@ Companies-AI-Initiatives.zip
 # secrets (for the upcoming LangChain/Azure upgrade)
 .env
 .env.*
+!.env.example
 *.key
+
+# duallens runtime artifacts
+duallens/chroma_duallens/
+duallens/chroma_agent/
+**/.ipynb_checkpoints/
+duallens/eval_results.json
+duallens/pipeline/chroma_pipeline/
+duallens/ragas_results.csv
+.deepeval/
+.deepeval-cache.json
+temp_test_run_data.json
