@@ -16,4 +16,5 @@ Companies-AI-Initiatives.zip
 
 # duallens runtime artifacts
 duallens/chroma_duallens/
+duallens/chroma_agent/
 **/.ipynb_checkpoints/

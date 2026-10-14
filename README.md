@@ -31,7 +31,32 @@ app/
   main.py            # FastAPI endpoints
 ui/
   streamlit_app.py   # web UI
+duallens/
+  DualLens_Analytics.ipynb  # dual-lens screener (fixed pipeline)
+  agent.py                  # dual-lens screener as a tool-using agent
 Companies-AI-Initiatives/   # the 5 source PDFs
+```
+
+## DualLens Agent — agentic RAG (`duallens/agent.py`)
+
+Where `DualLens_Analytics.ipynb` runs a fixed pipeline, `agent.py` turns the two
+lenses into **tools** and lets **Claude Opus 4.8** run a manual tool-use loop,
+deciding what to call and when. Framework-free on purpose: the agent loop is a
+plain `while` over the Messages API, so every tool call is explicit and printed.
+
+| Tool | Lens | Source |
+|------|------|--------|
+| `get_stock_metrics` | Quantitative | Yahoo Finance (cap, P/E, yield, beta, revenue) |
+| `get_price_performance` | Quantitative | 3-yr normalised return (momentum) |
+| `search_ai_strategy` | Qualitative | RAG over the 5 AI-initiative PDFs (OpenAI embeddings → Chroma) |
+
+```bash
+# keys: ANTHROPIC_API_KEY (reasoning) + OPENAI_API_KEY (embeddings) in .env at repo root.
+# optional: OPENAI_BASE_URL / ANTHROPIC_BASE_URL (gateways), ANTHROPIC_WORKSPACE_ID.
+uv pip install -r duallens/requirements.txt
+python -m duallens.agent --ingest          # one-time: build the vector store
+python -m duallens.agent                   # rank all 5 companies
+python -m duallens.agent "Is NVIDIA a buy given its AI strategy?"
 ```
 
 ## Setup (one time)
