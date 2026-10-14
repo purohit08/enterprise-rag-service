@@ -106,16 +106,26 @@ python -m duallens.deepeval_eval -n 2   # first N
 RAGAS writes per-question detail to `duallens/ragas_results.csv`; the custom
 judge writes `duallens/eval_results.json`. Both are gitignored.
 
-### Example RAGAS scorecard (2 gold questions)
+### Reference results — full gold set (4 questions, all 3 harnesses)
 
-```
-faithfulness:        0.91   # low hallucination
-answer_relevancy:    0.86
-context_precision:   0.96   # retrieved passages were relevant
-context_recall:      1.00   # retrieval covered the reference
-conciseness:         0.50   # ranking-style answers run long
-correctness_rubric:  5.0    # answers matched the reference
-```
+**Custom judge** (`eval.py`, 1-5): groundedness **5.00**, relevance **5.00**.
+
+**RAGAS vs. DeepEval** on the same gold set (both 0-1 unless noted):
+
+| Metric | RAGAS | DeepEval |
+|---|---|---|
+| faithfulness | 0.94 | 1.00 |
+| answer relevancy | 0.93 | 0.84 |
+| context precision | 1.00 | 1.00 |
+| context recall | 1.00 | 1.00 |
+| conciseness (rubric) | 0.75 | 0.75 |
+| correctness (rubric) | 5.0 / 5 | 0.95 |
+
+Two independent frameworks agree: strong retrieval (precision/recall ~1.0), low
+hallucination (faithfulness 0.94-1.0), accurate answers (correctness ~0.95-1.0),
+and the one consistent weak spot — **conciseness ~0.75**, because the Buy/Hold/Sell
+answers are thorough but verbose. That agreement across tools is the useful signal;
+the absolute numbers will drift with the gold set and judge.
 
 ---
 
