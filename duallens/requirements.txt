@@ -1,0 +1,26 @@
+# DualLens Analytics — RAG + quant/qual financial analysis
+# LLM: Claude Opus 4.8 (reasoning) · Embeddings: OpenAI (Claude has no embeddings API)
+
+# Orchestration
+langchain>=0.3.7
+langchain-anthropic>=0.3.0      # ChatAnthropic -> claude-opus-4-8
+langchain-openai>=0.2.0         # OpenAIEmbeddings (text-embedding-3-small)
+langchain-community>=0.3.0      # PyPDFDirectoryLoader
+langchain-chroma>=0.1.4         # Chroma vector store integration
+
+# Vector DB + model SDKs
+chromadb>=0.5.0
+anthropic>=0.40.0
+openai>=1.50.0
+
+# Quantitative lens
+yfinance>=0.2.40
+pandas>=2.0.0
+matplotlib>=3.8.0
+
+# Utilities
+pypdf>=4.0.0
+python-dotenv>=1.0.0
+
+# Notebook
+ipykernel>=6.29.0
